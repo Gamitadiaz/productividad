@@ -62,7 +62,7 @@ function playChime() {
 function notify(title: string, body: string) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
   try {
-    new Notification(title, { body, icon: '/pwa-192.png' })
+    new Notification(title, { body, icon: `${import.meta.env.BASE_URL}pwa-192.png` })
   } catch {
     /* algunos navegadores móviles sólo permiten notificaciones vía service worker */
   }

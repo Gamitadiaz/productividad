@@ -76,7 +76,7 @@ function Shell() {
     <div className="app">
       <nav className="nav" aria-label="Principal">
         <div className="brand">
-          <img className="brand-mark" src="/icon.svg" alt="" />
+          <img className="brand-mark" src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
           <span className="brand-name">Productividad</span>
         </div>
         {NAV.map((n) => (
@@ -121,7 +121,7 @@ function Shell() {
       <main className="main">
         <div className="mobile-top">
           <span className="brand">
-            <img className="brand-mark" src="/icon.svg" alt="" /> Productividad
+            <img className="brand-mark" src={`${import.meta.env.BASE_URL}icon.svg`} alt="" /> Productividad
           </span>
           <span className="mobile-actions">
             <button className="icon-btn" onClick={doExport} aria-label="Exportar respaldo">

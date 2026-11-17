@@ -3,6 +3,8 @@
 App web (PWA) de productividad: **tareas**, **pomodoro** y **hábitos** en un solo lugar.
 Funciona offline y se puede instalar en el celular desde el navegador.
 
+**En línea:** https://gamitadiaz.github.io/productividad/
+
 ## Funciones
 
 - **Inicio**: resumen del día, tareas para hoy, mini‑temporizador, hábitos y gráfica de enfoque de 7 días.
@@ -38,6 +40,16 @@ npm run lint
 `npm run dev` muestra una URL `Network: http://192.168.x.x:5173`; ábrela desde el celular en la misma red.
 Para **instalar** la PWA y tener notificaciones hace falta HTTPS (o `localhost`), así que para eso conviene desplegar
 (Vercel, Netlify, Cloudflare Pages) o usar un túnel como `cloudflared tunnel --url http://localhost:4173`.
+
+## Despliegue (GitHub Pages)
+
+`.github/workflows/deploy.yml` compila y publica en cada push a `main` o a la rama de trabajo
+(también se puede lanzar a mano desde **Actions → Deploy a GitHub Pages → Run workflow**).
+El workflow pasa `BASE_PATH=/productividad` para que rutas, manifest y service worker funcionen bajo ese subdirectorio.
+
+Requisitos únicos en GitHub:
+1. El repo debe ser **público** (Pages en repos privados requiere GitHub Pro).
+2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ## Estructura
 
