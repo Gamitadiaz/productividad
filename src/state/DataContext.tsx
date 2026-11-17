@@ -1,92 +1,51 @@
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react'
-import type { FocusSession, Habit, Task } from '../types'
-import { uid, useLocalState } from '../lib/storage'
+import { useSyncExternalStore } from 'react'
+import type { FocusSession, Habit, PomodoroSettings, Task } from '../types'
+import { uid } from '../lib/storage'
+import { PREFIX, Store } from './store'
+
+/** Instancia única del store, persistida en localStorage */
+export const store = new Store(window.localStorage)
+
+// Si otra pestaña modifica los datos, recargamos
+window.addEventListener('storage', (e) => {
+  if (!e.key?.startsWith(PREFIX)) return
+  const k = e.key.slice(PREFIX.length)
+  if (k === 'pomodoroTimer' || k.startsWith('syncCursor:')) return
+  store.reload()
+})
 
 type NewTask = Pick<Task, 'title' | 'priority' | 'tags'> & Partial<Pick<Task, 'due' | 'notes'>>
 
-interface DataContextValue {
-  tasks: Task[]
-  addTask: (t: NewTask) => void
-  updateTask: (id: string, patch: Partial<Task>) => void
-  toggleTask: (id: string) => void
-  deleteTask: (id: string) => void
-  clearCompleted: () => void
+const actions = {
+  addTask: (t: NewTask) => store.put('tasks', { id: uid(), done: false, createdAt: Date.now(), ...t }),
+  updateTask: (id: string, patch: Partial<Task>) => store.patch('tasks', id, patch),
+  toggleTask: (id: string) => {
+    const t = store.getState().tasks.find((x) => x.id === id)
+    if (t) store.patch('tasks', id, { done: !t.done, completedAt: t.done ? undefined : Date.now() })
+  },
+  deleteTask: (id: string) => store.remove('tasks', id),
+  clearCompleted: () =>
+    store.removeMany(
+      'tasks',
+      store.getState().tasks.filter((t) => t.done).map((t) => t.id),
+    ),
 
-  habits: Habit[]
-  addHabit: (h: Pick<Habit, 'name' | 'emoji' | 'color'>) => void
-  toggleHabit: (id: string, day: string) => void
-  deleteHabit: (id: string) => void
+  addHabit: (h: Pick<Habit, 'name' | 'emoji' | 'color'>) =>
+    store.put('habits', { id: uid(), createdAt: Date.now(), log: [], ...h }),
+  toggleHabit: (id: string, day: string) => {
+    const h = store.getState().habits.find((x) => x.id === id)
+    if (h) store.patch('habits', id, { log: h.log.includes(day) ? h.log.filter((d) => d !== day) : [...h.log, day] })
+  },
+  deleteHabit: (id: string) => store.remove('habits', id),
 
-  sessions: FocusSession[]
-  addSession: (s: Omit<FocusSession, 'id'>) => void
+  addSession: (s: Omit<FocusSession, 'id'>) => store.put('sessions', { id: uid(), ...s }),
+  setSettings: (s: PomodoroSettings) => store.setSettings(s),
 }
 
-const DataContext = createContext<DataContextValue | null>(null)
-
-export function DataProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useLocalState<Task[]>('tasks', [])
-  const [habits, setHabits] = useLocalState<Habit[]>('habits', [])
-  const [sessions, setSessions] = useLocalState<FocusSession[]>('sessions', [])
-
-  const addTask = useCallback(
-    (t: NewTask) =>
-      setTasks((prev) => [{ id: uid(), done: false, createdAt: Date.now(), ...t }, ...prev]),
-    [setTasks],
-  )
-  const updateTask = useCallback(
-    (id: string, patch: Partial<Task>) =>
-      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t))),
-    [setTasks],
-  )
-  const toggleTask = useCallback(
-    (id: string) =>
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === id ? { ...t, done: !t.done, completedAt: t.done ? undefined : Date.now() } : t,
-        ),
-      ),
-    [setTasks],
-  )
-  const deleteTask = useCallback((id: string) => setTasks((prev) => prev.filter((t) => t.id !== id)), [setTasks])
-  const clearCompleted = useCallback(() => setTasks((prev) => prev.filter((t) => !t.done)), [setTasks])
-
-  const addHabit = useCallback(
-    (h: Pick<Habit, 'name' | 'emoji' | 'color'>) =>
-      setHabits((prev) => [...prev, { id: uid(), createdAt: Date.now(), log: [], ...h }]),
-    [setHabits],
-  )
-  const toggleHabit = useCallback(
-    (id: string, day: string) =>
-      setHabits((prev) =>
-        prev.map((h) =>
-          h.id !== id ? h : { ...h, log: h.log.includes(day) ? h.log.filter((d) => d !== day) : [...h.log, day] },
-        ),
-      ),
-    [setHabits],
-  )
-  const deleteHabit = useCallback((id: string) => setHabits((prev) => prev.filter((h) => h.id !== id)), [setHabits])
-
-  const addSession = useCallback(
-    (s: Omit<FocusSession, 'id'>) => setSessions((prev) => [...prev, { id: uid(), ...s }]),
-    [setSessions],
-  )
-
-  const value = useMemo(
-    () => ({
-      tasks, addTask, updateTask, toggleTask, deleteTask, clearCompleted,
-      habits, addHabit, toggleHabit, deleteHabit,
-      sessions, addSession,
-    }),
-    [tasks, addTask, updateTask, toggleTask, deleteTask, clearCompleted, habits, addHabit, toggleHabit, deleteHabit, sessions, addSession],
-  )
-
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>
-}
-
-// Hook junto a su Provider: patrón estándar de contexto
 // oxlint-disable-next-line react/only-export-components
-export function useData(): DataContextValue {
-  const ctx = useContext(DataContext)
-  if (!ctx) throw new Error('useData debe usarse dentro de <DataProvider>')
-  return ctx
+export function useData() {
+  const state = useSyncExternalStore(store.subscribe, store.getState)
+  return { ...state, ...actions }
 }
+
+export const dataActions = actions

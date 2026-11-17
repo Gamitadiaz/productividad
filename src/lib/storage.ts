@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react'
 
 const PREFIX = 'prod:v1:'
 
-/** Claves que forman parte del respaldo exportable */
-export const BACKUP_KEYS = ['tasks', 'habits', 'sessions', 'pomodoroSettings'] as const
-
 export function readKey<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(PREFIX + key)
@@ -48,18 +45,6 @@ export function useLocalState<T>(key: string, initial: T) {
   }, [key])
 
   return [value, setValue] as const
-}
-
-export function exportBackup(): string {
-  const data: Record<string, unknown> = { app: 'productividad', version: 1, exportedAt: new Date().toISOString() }
-  for (const k of BACKUP_KEYS) data[k] = readKey(k, null)
-  return JSON.stringify(data, null, 2)
-}
-
-export function importBackup(json: string): void {
-  const data = JSON.parse(json) as Record<string, unknown>
-  if (data.app !== 'productividad') throw new Error('El archivo no es un respaldo de Productividad')
-  for (const k of BACKUP_KEYS) if (data[k] != null) writeKey(k, data[k])
 }
 
 export function uid(): string {

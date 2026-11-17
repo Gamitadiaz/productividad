@@ -11,6 +11,8 @@ export interface Task {
   done: boolean
   createdAt: number
   completedAt?: number
+  /** Última modificación (ms); se usa para resolver conflictos al sincronizar */
+  updatedAt?: number
 }
 
 export interface Habit {
@@ -21,6 +23,7 @@ export interface Habit {
   createdAt: number
   /** Días cumplidos en formato YYYY-MM-DD */
   log: string[]
+  updatedAt?: number
 }
 
 export interface FocusSession {
@@ -29,6 +32,7 @@ export interface FocusSession {
   start: number
   minutes: number
   taskId?: string
+  updatedAt?: number
 }
 
 export type PomodoroMode = 'focus' | 'short' | 'long'

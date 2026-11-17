@@ -69,8 +69,7 @@ function notify(title: string, body: string) {
 }
 
 export function PomodoroProvider({ children }: { children: ReactNode }) {
-  const { addSession } = useData()
-  const [settings, setSettings] = useLocalState<PomodoroSettings>('pomodoroSettings', DEFAULT_SETTINGS)
+  const { addSession, settings, setSettings } = useData()
   const duration = useCallback((m: PomodoroMode) => settings[m] * 60_000, [settings])
 
   const [timer, setTimer] = useLocalState<TimerState>('pomodoroTimer', {

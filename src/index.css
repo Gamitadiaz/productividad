@@ -109,7 +109,7 @@ textarea { resize: vertical; }
 .toggle { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; grid-column: 1 / -1; }
 .toggle input { accent-color: var(--accent); width: 18px; height: 18px; }
 
-.segmented { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.segmented { max-width: 100%; min-width: 0; display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 2px; overflow-x: auto; scrollbar-width: none; }
 .segmented button { padding: 7px 12px; border-radius: 9px; color: var(--muted); font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
 .segmented button.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 .count { font-size: 0.75rem; color: var(--muted); background: var(--bg); border-radius: 99px; padding: 0 6px; min-width: 20px; text-align: center; }
@@ -292,3 +292,45 @@ textarea { resize: vertical; }
 
 .mobile-top .brand { display: flex; padding: 0; font-size: 1rem; }
 .mobile-actions { display: flex; gap: 2px; }
+
+/* ---------- Cuenta / sincronización ---------- */
+.sync-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); vertical-align: middle; }
+.sync-ok { background: var(--good); }
+.sync-busy { background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+.sync-warn { background: var(--warn); }
+.sync-bad { background: var(--bad); }
+@keyframes pulse { 50% { opacity: 0.35; } }
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(-360deg); } }
+
+.account-btn { align-items: flex-start; }
+.account-btn-text { display: flex; flex-direction: column; gap: 1px; line-height: 1.25; }
+.account-btn-text .small { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; }
+.sync-btn { position: relative; }
+.sync-btn .sync-dot { position: absolute; right: 6px; bottom: 7px; border: 2px solid var(--bg); width: 10px; height: 10px; }
+
+.dialog {
+  border: 1px solid var(--border); border-radius: 18px; padding: 0; background: var(--surface); color: var(--text);
+  width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); box-shadow: 0 20px 60px rgb(0 0 0 / 0.35);
+}
+.dialog::backdrop { background: rgb(0 0 0 / 0.5); backdrop-filter: blur(2px); }
+.dialog-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+.dialog-head { display: flex; justify-content: space-between; align-items: center; }
+.dialog-head h2 { font-size: 1.15rem; }
+.auth-form { display: flex; flex-direction: column; gap: 12px; }
+.auth-form .segmented { align-self: stretch; }
+.auth-form .segmented button { flex: 1; justify-content: center; }
+.auth-form .link { margin: 0; align-self: center; font-size: 0.9rem; }
+.auth-form p { margin: 0; }
+.form-error { color: var(--bad); font-size: 0.88rem; margin: 0; }
+.form-notice { color: var(--good); font-size: 0.88rem; margin: 0; }
+.account-info { display: flex; flex-direction: column; gap: 14px; }
+.account-row { display: flex; align-items: center; gap: 12px; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-weight: 700; flex-shrink: 0; }
+.account-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.account-who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-who .small { display: inline-flex; align-items: center; gap: 6px; }
+.backup { border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+.backup h3 { margin: 0; font-size: 0.9rem; color: var(--muted); font-weight: 600; }
+.backup-actions { display: flex; gap: 8px; }
+.backup-actions .btn { flex: 1; }

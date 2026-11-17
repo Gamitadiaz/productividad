@@ -17,7 +17,7 @@ export function Focus() {
   const today = dayKey()
 
   const pending = useMemo(() => tasks.filter((t) => !t.done).sort(compareTasks), [tasks])
-  const todaySessions = sessions.filter((s) => dayKey(new Date(s.start)) === today)
+  const todaySessions = sessions.filter((s) => dayKey(new Date(s.start)) === today).sort((a, b) => a.start - b.start)
   const todayMinutes = todaySessions.reduce((a, s) => a + s.minutes, 0)
   const progress = p.totalMs ? 1 - p.remainingMs / p.totalMs : 0
   const cyclePos = p.completedFocus % p.settings.longEvery

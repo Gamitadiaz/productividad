@@ -108,7 +108,7 @@ export function Dashboard({ go }: { go: (v: View) => void }) {
               </button>
             ) : (
               <ul className="habit-today">
-                {habits.map((h) => {
+                {[...habits].sort((a, b) => a.createdAt - b.createdAt).map((h) => {
                   const done = h.log.includes(today)
                   return (
                     <li key={h.id}>

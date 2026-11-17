@@ -31,10 +31,17 @@ jobs:
 
       - run: npm ci
 
+      - name: Pruebas
+        run: npm test
+
       - name: Build
         run: npm run build
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Settings → Secrets and variables → Actions → Variables.
+          # La anon key es pública por diseño (la protege RLS), por eso va como variable.
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

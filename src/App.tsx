@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
-import { DataProvider } from './state/DataContext'
+import { useEffect, useState } from 'react'
 import { PomodoroProvider, usePomodoro } from './state/PomodoroContext'
 import { Dashboard } from './views/Dashboard'
 import { Tasks } from './views/Tasks'
 import { Focus } from './views/Focus'
 import { Habits } from './views/Habits'
 import { Icon, type IconName } from './components/Icon'
-import { exportBackup, importBackup } from './lib/storage'
-import { dayKey, formatClock } from './lib/date'
+import { formatClock } from './lib/date'
+import { SyncProvider, useSync } from './sync/SyncContext'
+import { AccountDialog, SyncDot } from './components/AccountDialog'
+import { syncLabel } from './sync/label'
 import type { View } from './types'
 
 const NAV: { id: View; label: string; icon: IconName }[] = [
@@ -40,8 +41,11 @@ function useTheme() {
 function Shell() {
   const [view, setView] = useState<View>(readView)
   const [theme, toggleTheme] = useTheme()
-  const fileRef = useRef<HTMLInputElement>(null)
   const p = usePomodoro()
+  const sync = useSync()
+  const [accountOpen, setAccountOpen] = useState(false)
+  const label = syncLabel(sync.info, !!sync.user)
+
 
   useEffect(() => {
     const onHash = () => setView(readView())
@@ -52,24 +56,6 @@ function Shell() {
   const go = (v: View) => {
     location.hash = `/${v}`
     window.scrollTo({ top: 0 })
-  }
-
-  const doExport = () => {
-    const blob = new Blob([exportBackup()], { type: 'application/json' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `productividad-${dayKey()}.json`
-    a.click()
-    URL.revokeObjectURL(a.href)
-  }
-
-  const doImport = async (file: File) => {
-    try {
-      importBackup(await file.text())
-      location.reload()
-    } catch (e) {
-      alert(e instanceof Error ? e.message : 'No se pudo importar el archivo')
-    }
   }
 
   return (
@@ -100,21 +86,15 @@ function Shell() {
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
             <span>Tema {theme === 'dark' ? 'claro' : 'oscuro'}</span>
           </button>
-          <button className="nav-item" onClick={doExport}>
-            <Icon name="download" size={18} />
-            <span>Exportar respaldo</span>
+          <button className="nav-item account-btn" onClick={() => setAccountOpen(true)}>
+            <Icon name="cloud" size={18} />
+            <span className="account-btn-text">
+              <span>{sync.user ? 'Cuenta' : 'Sincronizar'}</span>
+              <span className="muted small">
+                <SyncDot tone={label.tone} /> {label.text}
+              </span>
+            </span>
           </button>
-          <button className="nav-item" onClick={() => fileRef.current?.click()}>
-            <Icon name="upload" size={18} />
-            <span>Importar respaldo</span>
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="application/json"
-            hidden
-            onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])}
-          />
         </div>
       </nav>
 
@@ -124,11 +104,9 @@ function Shell() {
             <img className="brand-mark" src={`${import.meta.env.BASE_URL}icon.svg`} alt="" /> Productividad
           </span>
           <span className="mobile-actions">
-            <button className="icon-btn" onClick={doExport} aria-label="Exportar respaldo">
-              <Icon name="download" />
-            </button>
-            <button className="icon-btn" onClick={() => fileRef.current?.click()} aria-label="Importar respaldo">
-              <Icon name="upload" />
+            <button className="icon-btn sync-btn" onClick={() => setAccountOpen(true)} aria-label={`Cuenta: ${label.text}`}>
+              <Icon name="cloud" />
+              <SyncDot tone={label.tone} />
             </button>
             <button className="icon-btn" onClick={toggleTheme} aria-label="Cambiar tema">
               <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
@@ -140,16 +118,18 @@ function Shell() {
         {view === 'enfoque' && <Focus />}
         {view === 'habitos' && <Habits />}
       </main>
+      {/* Al volver del enlace de "olvidé mi contraseña" se abre solo para fijar una nueva */}
+      <AccountDialog open={accountOpen || sync.recovering} onClose={() => setAccountOpen(false)} />
     </div>
   )
 }
 
 export default function App() {
   return (
-    <DataProvider>
+    <SyncProvider>
       <PomodoroProvider>
         <Shell />
       </PomodoroProvider>
-    </DataProvider>
+    </SyncProvider>
   )
 }

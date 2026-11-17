@@ -74,7 +74,7 @@ export function Habits() {
         <div className="empty">Crea tu primer hábito. Lo pequeño y diario gana 🌱</div>
       ) : (
         <ul className="habit-list">
-          {habits.map((h) => {
+          {[...habits].sort((a, b) => a.createdAt - b.createdAt).map((h) => {
             const s = streak(h.log)
             const rate = Math.round((month.filter((d) => h.log.includes(d)).length / 30) * 100)
             return (
